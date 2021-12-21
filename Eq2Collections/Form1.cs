@@ -1468,7 +1468,14 @@ namespace Eq2Collections
 
         private void projectWebsiteToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            try
+            {
+                System.Diagnostics.Process.Start($"https://github.com/{githubOwner}/{githubProject}#everquest-ii-collection-utility");
+            }
+            catch (Exception ex)
+            {
+                FlexibleMessageBox.Show(this, ex.Message);
+            }
         }
 
         private void checkForUpdateToolStripMenuItem_Click(object sender, EventArgs e)
