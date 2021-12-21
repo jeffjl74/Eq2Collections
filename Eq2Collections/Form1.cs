@@ -49,7 +49,7 @@ namespace Eq2Collections
         List<TreeNode> finishedNodes = new List<TreeNode>();
         string baseUrl = @"https://census.daybreakgames.com/";
         Version remoteVersion;
-        const string githubProject = "EQ2Collections";
+        const string githubProject = "Eq2Collections";
         const string githubOwner = "jeffjl74";
 
         internal class FoundItems
@@ -73,6 +73,12 @@ namespace Eq2Collections
             // note that without a valid service ID, the number of census queries is strictly limited
             // to far less than this utility needs
             baseUrl = baseUrl + ServiceId.service_id + "/";
+
+            // if there is a previous version file laying around, remove it
+            string exeFullName = Application.ExecutablePath;
+            string oldName = exeFullName + ".old";
+            if (File.Exists(oldName))
+                File.Delete(oldName);
         }
 
         private void NewHttp()
@@ -1495,6 +1501,9 @@ namespace Eq2Collections
                         "Update Available", 
                         MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
                     {
+                        UseWaitCursor = true;
+                        FormWait formWait = new FormWait("Downloading and updating");
+                        formWait.Show();
                         Task<FileInfo> ftask = Task.Run(() => { return GetRemoteFileAsync(); });
                         ftask.Wait();
                         if (ftask.Result != null)
@@ -1513,7 +1522,7 @@ namespace Eq2Collections
                 }
                 else
                 {
-                    FlexibleMessageBox.Show(this, "You are running the current version: " + Lver);
+                    FlexibleMessageBox.Show(this, "You are running the current version: " + Lver, "No update");
                 }
             }
             catch (Exception ex)
