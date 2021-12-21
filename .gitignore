@@ -1,0 +1,5 @@
+Eq2Collections/bin/
+Eq2Collections/obj/
+.vs
+census-examples.txt
+Eq2Collections/ServiceId.cs
