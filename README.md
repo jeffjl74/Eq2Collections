@@ -10,7 +10,7 @@ The utility can query the census for the items actually collected by a character
 and flag them in the hierarchy. The result is something like the "Main screen" screenshot shown. 
 (The green monster icons are placeholders for icon's that are not available in the census.)
 
-![Startup](screenshots/Fabled-Kael-Drakkel-2.png)
+![Startup](Eq2Collections/screenshots/Fabled-Kael-Drakkel-2.png)
 
 ## The Tree Pane
 Top level nodes in the tree are collection categories grouped by level. 
@@ -42,7 +42,7 @@ Right click any item in the tree,
 choose the 'What's Missing' menu and the tool generates a list of all of the missing items 
 in the collection and its children. An example is shown in the `Want List` screenshot shown.
 
-![Missing](screenshots/Wantlist-2.png)
+![Missing](Eq2Collections/screenshots/Wantlist-2.png)
 
 The list can be filtered using the "Options" button at the bottom 
 (as shown in the screenshot) for example to remove items rewarded by child collections 
@@ -56,7 +56,7 @@ Sometimes a collection reward feeds a collection in a different category or at a
 An example is shown in the "Find an item" screenshot where the items are Reward Items 
 but the collection has no children. 
 
-![Find](screenshots/Find-item-2.png)
+![Find](Eq2Collections/screenshots/Find-item-2.png)
 
 The "Find Item" menu can be used to find the source of that reward. 
 (Shortcut: select the item and press ctrl-f.) 
