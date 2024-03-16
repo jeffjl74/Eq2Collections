@@ -67,9 +67,8 @@ For instance, the tool will not find "moth" but it will find "plain black moth".
 
 
 # Changes
-__Version 1.3.0__: 
-* Added special parsing of `Visions of Vetrovia` collections since rewards are currently missing from the census.
-* Added update method to the `Help` menu.
+__Version 1.3.1__: 
+* Census has been particulaly unstable in early 2024. The utility is now better at avoiding hanging up or crashing due to unexpected census behavior. (e.g. census currently does not return any images or icons.)
 
 
 # Installation

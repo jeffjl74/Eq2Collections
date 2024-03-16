@@ -15,6 +15,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
 using System.IO.Compression;
+using System.Xml;
+using System.Diagnostics;
 
 namespace Eq2Collections
 {
@@ -90,6 +92,7 @@ namespace Eq2Collections
                                                  DecompressionMethods.Deflate;
             }
             client = new HttpClient(handler);
+            client.Timeout = new TimeSpan(0, 0, 15);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -147,26 +150,31 @@ namespace Eq2Collections
                 //don't need dead worlds
                 DateTime today = DateTime.Now;
                 TimeSpan span = new TimeSpan(30, 0, 0, 0); //30 days
-                foreach (World w in worldList.world)
+                if (worldList.world == null)
+                    FlexibleMessageBox.Show(this, "Census did not return the list of worlds.");
+                else
                 {
-                    DateTime updated = UnixTimeStampToDateTime(w.last_update);
-                    if (today - updated <= span)
+                    try
                     {
-                        comboBoxWorlds.Items.Add(w.name);
+                        foreach (World w in worldList.world)
+                        {
+                            DateTime updated = UnixTimeStampToDateTime(w.last_update);
+                            if (today - updated <= span)
+                            {
+                                comboBoxWorlds.Items.Add(w.name);
+                            }
+                        }
+                        if (string.IsNullOrEmpty(Properties.Settings.Default.World))
+                            comboBoxWorlds.SelectedIndex = 0;
+                        else
+                            comboBoxWorlds.SelectedItem = Properties.Settings.Default.World;
                     }
-                }
-                try
-                {
-                    if (string.IsNullOrEmpty(Properties.Settings.Default.World))
-                        comboBoxWorlds.SelectedIndex = 0;
-                    else
-                        comboBoxWorlds.SelectedItem = Properties.Settings.Default.World;
-                }
-                catch
-                {
-                    FlexibleMessageBox.Show(this, "There was a problem getting the world list from the census.\nRestart EQ2Collections to retry.");
-                    Properties.Settings.Default.World = string.Empty;
-                    Properties.Settings.Default.Save();
+                    catch
+                    {
+                        FlexibleMessageBox.Show(this, "There was a problem getting the world list from the census.\nRestart EQ2Collections to retry.");
+                        Properties.Settings.Default.World = string.Empty;
+                        Properties.Settings.Default.Save();
+                    }
                 }
             }
 
@@ -229,7 +237,7 @@ namespace Eq2Collections
         {
             try
             {
-                var requestUri = baseUrl + @"xml/get/eq2/collection/?c:show=category,level&c:limit=2000";
+                var requestUri = baseUrl + @"xml/get/eq2/collection/?c:show=category,level&c:limit=3000";
                 //UseWaitCursor = true;
                 var response = await client.GetAsync(requestUri);
                 if (response.IsSuccessStatusCode)
@@ -355,7 +363,7 @@ namespace Eq2Collections
                 }
                 catch (OperationCanceledException)
                 {
-                    Console.WriteLine("GetItemDetails cancelled");
+                    Debug.WriteLine("GetItemDetails cancelled");
                 }
                 catch (Exception gidx)
                 {
@@ -417,15 +425,18 @@ namespace Eq2Collections
                 }
                 else
                 {
-                    Console.WriteLine("GetImage for id " + id + ": " + response.ReasonPhrase);
-                    //use the green monster for missing icons
-                    await GetImage("11", list, ct);
+                    Debug.WriteLine("GetImage for id " + id + ": " + response.ReasonPhrase);
+                    if (id != "11")
+                    {
+                        //use the green monster for missing icons
+                        await GetImage("11", list, ct);
+                    }
                 }
                 //UseWaitCursor = false;
             }
             catch (OperationCanceledException)
             {
-                Console.WriteLine("GetImage cancelled");
+                Debug.WriteLine("GetImage cancelled");
             }
             catch (Exception gix)
             {
@@ -449,9 +460,12 @@ namespace Eq2Collections
                 }
                 else
                 {
-                    Console.WriteLine("GetImage<Image> for id " + id + ": " + response.ReasonPhrase);
-                    //use the green monster for missing icons
-                    image = await GetImage("11");
+                    Debug.WriteLine("GetImage<Image> for id " + id + ": " + response.ReasonPhrase);
+                    if(id != "11")
+                    {
+                        //use the green monster for missing icons
+                        image = await GetImage("11");
+                    }
                 }
             }
             catch (Exception gix)
@@ -481,7 +495,8 @@ namespace Eq2Collections
                 if (refr.image == null)
                 {
                     await GetImage(refr.icon, images, ct);
-                    refr.image = images.Images[images.Images.Count - 1];
+                    if(images.Images.Count > 0)
+                        refr.image = images.Images[images.Images.Count - 1];
                 }
                 else
                     images.Images.Add(refr.image);
@@ -512,7 +527,8 @@ namespace Eq2Collections
                         if (item.image == null)
                         {
                             await GetImage(item.itemDetail.iconid, images, ct);
-                            item.image = images.Images[images.Images.Count - 1];
+                            if(images.Images.Count > 0)
+                                item.image = images.Images[images.Images.Count - 1];
                         }
                         else
                             images.Images.Add(item.image);
@@ -522,7 +538,8 @@ namespace Eq2Collections
                         //undefined item, probably not discovered yet
                         //give it a monster icon
                         await GetImage("11", images, ct);
-                        item.image = images.Images[images.Images.Count - 1];
+                        if(images.Images.Count > 0)
+                            item.image = images.Images[images.Images.Count - 1];
                     }
                 }
             }
@@ -549,7 +566,8 @@ namespace Eq2Collections
                         if (item.image == null)
                         {
                             await GetImage(item.itemDetail.iconid, images, ct);
-                            item.image = images.Images[images.Images.Count - 1];
+                            if (images.Images.Count > 0)
+                                item.image = images.Images[images.Images.Count - 1];
                         }
                         else
                             images.Images.Add(item.image);
@@ -559,7 +577,8 @@ namespace Eq2Collections
                         //undefined item, probably not discovered yet
                         //give it a monster icon
                         await GetImage("11", images, ct);
-                        item.image = images.Images[images.Images.Count - 1];
+                        if(images.Images.Count > 0)
+                            item.image = images.Images[images.Images.Count - 1];
                     }
                 }
             }
@@ -711,7 +730,7 @@ namespace Eq2Collections
                                 //{
                                 //    if(rewardTrack.ContainsKey(i.id))
                                 //    {
-                                //        Console.WriteLine("rewardTrack already contains " + c.category + ": "  + node.name + " " + i.id);
+                                //        Debug.WriteLine("rewardTrack already contains " + c.category + ": "  + node.name + " " + i.id);
                                 //    }
                                 //}
                             }
@@ -959,7 +978,7 @@ namespace Eq2Collections
                     cts.Cancel();
                     //wait for the cancel to propagate
                     while (cts != null)
-                        Console.WriteLine("select waiting for cancel");
+                        Debug.WriteLine("select waiting for cancel");
                 }
 
                 // *** Now set cts to cancel the current process if an item is chosen again.
@@ -1110,7 +1129,7 @@ namespace Eq2Collections
                     }
                     catch (OperationCanceledException)
                     {
-                        Console.WriteLine("treeView after select cancelled");
+                        Debug.WriteLine("treeView after select cancelled");
                     }
                     listView1.Columns[0].Width = -2;
                     if (findNextItemIndex >= 0 && foundItems.Count > 0)
@@ -1122,7 +1141,7 @@ namespace Eq2Collections
                             {
                                 item.Selected = true;
                                 item.EnsureVisible();
-                                //Console.WriteLine("selected found item " + foundNodes[findNextIndex].itemIndex.ToString());
+                                //Debug.WriteLine("selected found item " + foundNodes[findNextIndex].itemIndex.ToString());
                             }
                         }
                     }
@@ -1361,11 +1380,11 @@ namespace Eq2Collections
                 {
                     item.SubItems[0].BackColor = Color.Empty;
                     item.SubItems[0].ForeColor = Color.Empty;
-                    //Console.WriteLine("enter: set empty color for " + item.Text);
+                    //Debug.WriteLine("enter: set empty color for " + item.Text);
                 }
             }
             //else
-            //    Console.WriteLine("no selected items");
+            //    Debug.WriteLine("no selected items");
         }
 
         private void listView1_Leave(object sender, EventArgs e)
@@ -1376,25 +1395,25 @@ namespace Eq2Collections
                 {
                     item.SubItems[0].BackColor = SystemColors.Highlight;
                     item.SubItems[0].ForeColor = Color.White;
-                    //Console.WriteLine("leave: set highlight color for " + item.Text);
+                    //Debug.WriteLine("leave: set highlight color for " + item.Text);
                 }
                 listView1.Refresh();
             }
             //else
-            //    Console.WriteLine("no selected items");
+            //    Debug.WriteLine("no selected items");
         }
 
         private void listView1_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
         {
             if (e.IsSelected)
             {
-                //Console.WriteLine("highlight selected item " + e.Item.Text);
+                //Debug.WriteLine("highlight selected item " + e.Item.Text);
                 e.Item.SubItems[0].BackColor = SystemColors.Highlight;
                 e.Item.SubItems[0].ForeColor = Color.White;
             }
             else
             {
-                //Console.WriteLine("un-selected item " + e.Item.Text);
+                //Debug.WriteLine("un-selected item " + e.Item.Text);
                 e.Item.BackColor = Color.Empty;
                 e.Item.ForeColor = Color.Empty;
             }
@@ -1440,7 +1459,7 @@ namespace Eq2Collections
                         if (string.IsNullOrEmpty(toolTip1.GetToolTip(listView1)))
                         {
                             toolTip1.SetToolTip(listView1, "<Ctrl>-f to search for the source of this item");
-                            Console.WriteLine("tip ctrl-f");
+                            Debug.WriteLine("tip ctrl-f");
                         }
                         clearTip = false;
                     }
@@ -1450,7 +1469,7 @@ namespace Eq2Collections
                     if (!string.IsNullOrEmpty(toolTip1.GetToolTip(listView1)))
                     {
                         toolTip1.SetToolTip(listView1, string.Empty);
-                        Console.WriteLine("tip none");
+                        Debug.WriteLine("tip none");
                     }
                 }
             }
@@ -1636,7 +1655,7 @@ namespace Eq2Collections
                                     }
                                     else
                                     {
-                                        Console.WriteLine("id match but no details");
+                                        Debug.WriteLine("id match but no details");
                                     }
                                 }
                                 itemIndex++;
@@ -1702,7 +1721,7 @@ namespace Eq2Collections
 {
                 TreeNode[] found = treeView2.Nodes.Find(checkedNode.Name, true);
                 //if (found.Length > 1)
-                //    Console.WriteLine("debug");
+                //    Debug.WriteLine("debug");
                 foreach(TreeNode treeNode in found)
                 {
                     //just double check that they are the same node 
