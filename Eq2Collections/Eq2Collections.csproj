@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>Eq2Collections</RootNamespace>
     <AssemblyName>Eq2Collections</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
@@ -41,6 +41,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
@@ -64,6 +65,7 @@
     <Compile Include="CatCollectionList.cs" />
     <Compile Include="CharacterMiscList.cs" />
     <Compile Include="CollectionList.cs" />
+    <Compile Include="DDSImage.cs" />
     <Compile Include="FindEventArgs.cs" />
     <Compile Include="FindForm.cs">
       <SubType>Form</SubType>

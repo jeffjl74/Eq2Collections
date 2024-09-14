@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using static Eq2Collections.Form1;
 
 namespace Eq2Collections
 {
@@ -17,7 +12,8 @@ namespace Eq2Collections
         List<Reference> references;
         private bool showIcons = false;
         bool hideRewards = false;
-        bool onlyNoTrade = false;
+        bool hideTradeable = false;
+        bool hideNoTrade = false;
         private int sortCol = -1;
 
         public WantList(string title, List<Reference> references, bool wantIcons)
@@ -34,7 +30,8 @@ namespace Eq2Collections
             ShowItems();
 
             hideRewardItemsToolStripMenuItem.Checked = hideRewards;
-            noTradeToolStripMenuItem.Checked = onlyNoTrade;
+            hideTradeableToolStripMenuItem.Checked = hideTradeable;
+            hideNoTradeToolStripMenuItem.Checked = hideNoTrade;
             this.Text = "Want List: " + title;
         }
 
@@ -81,7 +78,10 @@ namespace Eq2Collections
                 if (refr.isReward && hideRewards)
                     continue;
 
-                if(onlyNoTrade && !notrade)
+                if(hideTradeable && !notrade)
+                    continue;
+
+                if(hideNoTrade && notrade)
                     continue;
 
                 listView1.Items.Add(item);
@@ -89,20 +89,6 @@ namespace Eq2Collections
             }
             listView1.Columns[0].Width = -2;
             toolStripStatusLabelCounts.Text = string.Format("{0} item{1}", itemCount, itemCount == 0 || itemCount > 1 ? "s" : "");
-        }
-
-        private void hideRewardItemsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            hideRewards = !hideRewards;
-            hideRewardItemsToolStripMenuItem.Checked = hideRewards;
-            ShowItems();
-        }
-
-        private void noTradeToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            onlyNoTrade = !onlyNoTrade;
-            noTradeToolStripMenuItem.Checked = onlyNoTrade;
-            ShowItems();
         }
 
         private void WantList_FormClosing(object sender, FormClosingEventArgs e)
@@ -178,6 +164,27 @@ namespace Eq2Collections
 
             // Perform the sort with these new sort options.
             listView1.Sort();
+        }
+
+        private void hideRewardItemsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            hideRewards = !hideRewards;
+            hideRewardItemsToolStripMenuItem.Checked = hideRewards;
+            ShowItems();
+        }
+
+        private void hideTradeableToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            hideTradeable = !hideTradeable;
+            hideTradeableToolStripMenuItem.Checked = hideTradeable;
+            ShowItems();
+        }
+
+        private void hideNoTradeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            hideNoTrade = !hideNoTrade;
+            hideNoTradeToolStripMenuItem.Checked = hideNoTrade;
+            ShowItems();
         }
     }
 }

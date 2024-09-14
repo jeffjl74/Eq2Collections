@@ -15,8 +15,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
 using System.IO.Compression;
-using System.Xml;
 using System.Diagnostics;
+using Eq2Collections.Properties;
+using System.Configuration;
 
 namespace Eq2Collections
 {
@@ -53,6 +54,12 @@ namespace Eq2Collections
         Version remoteVersion;
         const string githubProject = "Eq2Collections";
         const string githubOwner = "jeffjl74";
+        string iconPath = string.Empty;
+        const string iconFolder = "UI\\Default\\images\\icons";
+        const int iconsPerDDS = 36;
+        const int iconSize = 42;
+        bool initializing = true;
+        Dictionary<int, DDSImage> ddsImages = new Dictionary<int, DDSImage>();
 
         internal class FoundItems
         {
@@ -83,20 +90,17 @@ namespace Eq2Collections
                 File.Delete(oldName);
         }
 
-        private void NewHttp()
-        {
-            handler = new HttpClientHandler();
-            if (handler.SupportsAutomaticDecompression)
-            {
-                handler.AutomaticDecompression = DecompressionMethods.GZip |
-                                                 DecompressionMethods.Deflate;
-            }
-            client = new HttpClient(handler);
-            client.Timeout = new TimeSpan(0, 0, 15);
-        }
-
         private void Form1_Load(object sender, EventArgs e)
         {
+            string configPath = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.PerUserRoamingAndLocal).FilePath;
+            if (!File.Exists(configPath))
+            {
+                //Existing user config does not exist, so load settings from previous assembly
+                Settings.Default.Upgrade();
+                Settings.Default.Reload();
+                Settings.Default.Save();
+            }
+
             if (!Properties.Settings.Default.WindowSize.Equals(new Size(0, 0)))
                 this.Size = Properties.Settings.Default.WindowSize;
             if (Properties.Settings.Default.WindowLocation != null)
@@ -120,6 +124,12 @@ namespace Eq2Collections
             checkBoxShowIcons.Checked = Properties.Settings.Default.ShowIcons;
             checkBoxLevelSort.Checked = Properties.Settings.Default.SortByLevel;
 
+            if (!string.IsNullOrEmpty(Settings.Default.GameFolder))
+            {
+                iconPath = Path.Combine(Settings.Default.GameFolder, iconFolder);
+                checkBoxGameIcons.Checked = Settings.Default.UseGameIcons;
+            }
+
             ImageList treeImageList = new ImageList();
             treeImageList.Images.Add(Properties.Resources.Folder6);
             treeImageList.Images.Add(Properties.Resources.FolderOpen2);
@@ -131,7 +141,7 @@ namespace Eq2Collections
             toolTip.InitialDelay = 1000;
             toolTip.ReshowDelay = 1000;
             toolTip.ShowAlways = true;
-            toolTip.SetToolTip(checkBoxShowIcons, "Check to fetch item icons (takes time)");
+            toolTip.SetToolTip(checkBoxShowIcons, "Check to fetch item icons\n(takes time if using census icons)");
             toolTip.SetToolTip(textBoxChar, "Fetch collection status for this character");
             toolTip.SetToolTip(comboBoxWorlds, "World for the character name");
             toolTip.SetToolTip(buttonChar, "Get the collections for the given character and world");
@@ -140,6 +150,7 @@ namespace Eq2Collections
             //toolTip.SetToolTip(treeView1, "Top level node is just the category.\nChild nodes contain collections.");
 
             toolStripStatusLabelItemCount.Visible = false;
+            initializing = false;
         }
 
         private async void Form1_Shown(object sender, EventArgs e)
@@ -204,6 +215,18 @@ namespace Eq2Collections
         }
 
         #region HTTP
+
+        private void NewHttp()
+        {
+            handler = new HttpClientHandler();
+            if (handler.SupportsAutomaticDecompression)
+            {
+                handler.AutomaticDecompression = DecompressionMethods.GZip |
+                                                 DecompressionMethods.Deflate;
+            }
+            client = new HttpClient(handler);
+            client.Timeout = new TimeSpan(0, 0, 8);
+        }
 
         public async Task GetCollection(CatCollection cat)
         {
@@ -412,27 +435,66 @@ namespace Eq2Collections
         {
             try
             {
-                var requestUri = baseUrl + @"img/eq2/icons/" + id + @"/item/";
-                //UseWaitCursor = true;
-                var response = await client.GetAsync(requestUri, ct);
-                if (response.IsSuccessStatusCode)
+                bool found = false;
+                if (checkBoxGameIcons.Checked)
                 {
-                    using (var stream = await response.Content.ReadAsStreamAsync())
+                    int iconId = int.Parse(id);
+                    int iconFileNum = (iconId / iconsPerDDS) + 1;
+                    int iconNum = iconId % iconsPerDDS;
+                    string iconFileName = $"icon_is{iconFileNum}.dds";
+                    string iconFile = Path.Combine(iconPath, iconFileName);
+                    DDSImage dds = null;
+                    if (!ddsImages.TryGetValue(iconId, out dds))
                     {
-                        Image image = Image.FromStream(stream);
-                        list.Images.Add(image);
+                        if(File.Exists(iconFile))
+                        {
+                            using (var stream = new FileStream(iconFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                            {
+                                if (stream != null)
+                                {
+                                    byte[] ba = new byte[stream.Length];
+                                    stream.Read(ba, 0, ba.Length);
+                                    dds = new DDSImage(ba);
+                                    ddsImages.Add(iconId, dds);
+                                }
+                            }
+                        }
+                    }
+                    if(dds != null)
+                    {
+                        int iconRow = iconNum / 6;
+                        int iconCol = iconNum - (iconRow * 6);
+                        Rectangle rect = new Rectangle(iconCol * iconSize,
+                            iconRow * iconSize,
+                            iconSize, iconSize);
+                        list.Images.Add(dds.images[0].Clone(rect, dds.images[0].PixelFormat));
+                        found = true;
                     }
                 }
-                else
+                if(!found)
                 {
-                    Debug.WriteLine("GetImage for id " + id + ": " + response.ReasonPhrase);
-                    if (id != "11")
+                    var requestUri = baseUrl + @"img/eq2/icons/" + id + @"/item/";
+                    //UseWaitCursor = true;
+                    var response = await client.GetAsync(requestUri, ct);
+                    if (response.IsSuccessStatusCode)
                     {
-                        //use the green monster for missing icons
-                        await GetImage("11", list, ct);
+                        using (var stream = await response.Content.ReadAsStreamAsync())
+                        {
+                            Image image = Image.FromStream(stream);
+                            list.Images.Add(image);
+                        }
                     }
+                    else
+                    {
+                        Debug.WriteLine("GetImage for id " + id + ": " + response.ReasonPhrase);
+                        if (id != "11")
+                        {
+                            //use the green monster for missing icons
+                            await GetImage("11", list, ct);
+                        }
+                    }
+                    //UseWaitCursor = false;
                 }
-                //UseWaitCursor = false;
             }
             catch (OperationCanceledException)
             {
@@ -447,32 +509,13 @@ namespace Eq2Collections
         public async Task<Image> GetImage(string id)
         {
             Image image = null;
-            try
-            {
-                var requestUri = baseUrl + @"img/eq2/icons/" + id + @"/item/";
-                var response = await client.GetAsync(requestUri/*, ct*/);
-                if (response.IsSuccessStatusCode)
-                {
-                    using (var stream = await response.Content.ReadAsStreamAsync())
-                    {
-                        image = Image.FromStream(stream);
-                    }
-                }
-                else
-                {
-                    Debug.WriteLine("GetImage<Image> for id " + id + ": " + response.ReasonPhrase);
-                    if(id != "11")
-                    {
-                        //use the green monster for missing icons
-                        image = await GetImage("11");
-                    }
-                }
-            }
-            catch (Exception gix)
-            {
-                FlexibleMessageBox.Show(this,"GetImage<Image> exception: " + gix.Message, "Error");
-            }
-            return image;
+
+            ImageList imageList = new ImageList();
+            await GetImage(id, imageList, new CancellationToken());
+            if(imageList.Images.Count == 0)
+                return image;
+            else
+                return imageList.Images[0];
         }
 
         private async Task SetDetails(Reference refr)
@@ -495,7 +538,7 @@ namespace Eq2Collections
                 if (refr.image == null)
                 {
                     await GetImage(refr.icon, images, ct);
-                    if(images.Images.Count > 0)
+                    if (images.Images.Count > 0)
                         refr.image = images.Images[images.Images.Count - 1];
                 }
                 else
@@ -1366,7 +1409,8 @@ namespace Eq2Collections
                 await SetDetails(refr);
             }
 
-            WantList wants = new WantList(clickedNode.Text, wantList, checkBoxShowIcons.Checked);
+            string title = $"{clickedNode.Text} - {textBoxChar.Text}";
+            WantList wants = new WantList(title, wantList, checkBoxShowIcons.Checked);
             wants.Owner = this;
             wants.Show();
             UseWaitCursor = false;
@@ -1606,6 +1650,40 @@ namespace Eq2Collections
                 return null;
             }
             catch { return null; }
+        }
+
+        private void checkBoxGameIcons_CheckedChanged(object sender, EventArgs e)
+        {
+            if (initializing)
+                return;
+
+            if (checkBoxGameIcons.Checked)
+            {
+                using (FolderBrowserDialog fbd = new FolderBrowserDialog())
+                {
+                    fbd.ShowNewFolderButton = false;
+                    fbd.Description = @"Select your 'Everquest II' game folder, where the 'everquest2.exe' file resides.";
+                    fbd.SelectedPath = Settings.Default.GameFolder;
+                    if (fbd.ShowDialog() == DialogResult.OK)
+                    {
+                        iconPath = Path.Combine(fbd.SelectedPath, iconFolder);
+                        if (File.Exists(Path.Combine(iconPath, "icon_is1.dds")))
+                        {
+                            Settings.Default.GameFolder = fbd.SelectedPath;
+                            Settings.Default.UseGameIcons = true;
+                        }
+                        else
+                        {
+                            FlexibleMessageBox.Show(this, "Could not find 'Everquest II\\UI\\Default\\images\\icons' at that location");
+                            checkBoxGameIcons.Checked = false;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Settings.Default.UseGameIcons = false;
+            }
         }
 
         #endregion UI Events

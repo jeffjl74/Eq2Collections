@@ -42,6 +42,9 @@
             this.findItemToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.findCollectionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.checkForUpdateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.projectWebsiteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.checkBoxShowIcons = new System.Windows.Forms.CheckBox();
             this.panel2 = new System.Windows.Forms.Panel();
@@ -66,9 +69,7 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.whatsMissingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.checkForUpdateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.projectWebsiteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.checkBoxGameIcons = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -202,11 +203,30 @@
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.helpToolStripMenuItem.Text = "Help";
             // 
+            // checkForUpdateToolStripMenuItem
+            // 
+            this.checkForUpdateToolStripMenuItem.Name = "checkForUpdateToolStripMenuItem";
+            this.checkForUpdateToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.checkForUpdateToolStripMenuItem.Text = "Check for update...";
+            this.checkForUpdateToolStripMenuItem.Click += new System.EventHandler(this.checkForUpdateToolStripMenuItem_Click);
+            // 
+            // projectWebsiteToolStripMenuItem
+            // 
+            this.projectWebsiteToolStripMenuItem.Name = "projectWebsiteToolStripMenuItem";
+            this.projectWebsiteToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
+            this.projectWebsiteToolStripMenuItem.Text = "Project Website";
+            this.projectWebsiteToolStripMenuItem.Click += new System.EventHandler(this.projectWebsiteToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(171, 6);
+            // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F1;
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.aboutToolStripMenuItem.Text = "About...";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
@@ -369,6 +389,7 @@
             // panel3
             // 
             this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.panel3.Controls.Add(this.checkBoxGameIcons);
             this.panel3.Controls.Add(this.checkBoxShowIcons);
             this.panel3.Controls.Add(this.label4);
             this.panel3.Dock = System.Windows.Forms.DockStyle.Top;
@@ -439,24 +460,18 @@
             this.whatsMissingToolStripMenuItem.Text = "What\'s Missing...";
             this.whatsMissingToolStripMenuItem.Click += new System.EventHandler(this.whatsMissingToolStripMenuItem_Click);
             // 
-            // checkForUpdateToolStripMenuItem
+            // checkBoxGameIcons
             // 
-            this.checkForUpdateToolStripMenuItem.Name = "checkForUpdateToolStripMenuItem";
-            this.checkForUpdateToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.checkForUpdateToolStripMenuItem.Text = "Check for update...";
-            this.checkForUpdateToolStripMenuItem.Click += new System.EventHandler(this.checkForUpdateToolStripMenuItem_Click);
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
-            // 
-            // projectWebsiteToolStripMenuItem
-            // 
-            this.projectWebsiteToolStripMenuItem.Name = "projectWebsiteToolStripMenuItem";
-            this.projectWebsiteToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.projectWebsiteToolStripMenuItem.Text = "Project Website";
-            this.projectWebsiteToolStripMenuItem.Click += new System.EventHandler(this.projectWebsiteToolStripMenuItem_Click);
+            this.checkBoxGameIcons.AutoSize = true;
+            this.checkBoxGameIcons.Location = new System.Drawing.Point(321, 5);
+            this.checkBoxGameIcons.Name = "checkBoxGameIcons";
+            this.checkBoxGameIcons.Size = new System.Drawing.Size(102, 17);
+            this.checkBoxGameIcons.TabIndex = 3;
+            this.checkBoxGameIcons.Text = "Use game icons";
+            this.toolTip1.SetToolTip(this.checkBoxGameIcons, "Check to browse to the game folder\r\nand use the game icons instead of census icon" +
+        "s");
+            this.checkBoxGameIcons.UseVisualStyleBackColor = true;
+            this.checkBoxGameIcons.CheckedChanged += new System.EventHandler(this.checkBoxGameIcons_CheckedChanged);
             // 
             // Form1
             // 
@@ -537,6 +552,7 @@
         private System.Windows.Forms.ToolStripMenuItem checkForUpdateToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem projectWebsiteToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.CheckBox checkBoxGameIcons;
     }
 }
 

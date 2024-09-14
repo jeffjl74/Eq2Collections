@@ -67,8 +67,9 @@ For instance, the tool will not find "moth" but it will find "plain black moth".
 
 
 # Changes
-__Version 1.3.1__: 
-* Census has been particulaly unstable in early 2024. The utility is now better at avoiding hanging up or crashing due to unexpected census behavior. (e.g. census currently does not return any images or icons.)
+__Version 1.3.2__: 
+* Daybreak is disinclined to acquiesce to our request to fix census images. This version adds the option to get the collection item icons from the game files. (This is faster and finds more of the icons than were ever in the census anyway.) Check the []*Use game icons* checkbox and browse to your *Everquest II* folder.
+* Added *Hide No Trade* filter to the want list.
 
 
 # Installation
