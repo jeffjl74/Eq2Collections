@@ -783,13 +783,17 @@ namespace Eq2Collections
                             var item = node.referenceList.reference.ToDictionary(i => i.id);
                             if (item != null)
                             {
-                                //item.ToList().ForEach(x => { x.Value.collectionId = node.id; itemTrack.Add(x.Key, x.Value); });
-                                //no known duplicate keys, but just to avoid future crashes, allow them
-                                item.ToList().ForEach(x => { x.Value.collectionId = node.id; itemTrack[x.Key] = x.Value; });
+                                try
+                                {
+                                    //item.ToList().ForEach(x => { x.Value.collectionId = node.id; itemTrack.Add(x.Key, x.Value); });
+                                    //no known duplicate keys, but just to avoid future crashes, allow them
+                                    item.ToList().ForEach(x => { x.Value.collectionId = node.id; itemTrack[x.Key] = x.Value; });
 
-                                //include in the list for use with finding a toon's collected items
-                                // the key is "collectionID-itemID"
-                                item.ToList().ForEach(x => lookupItems.Add(node.id + "-" + x.Key, x.Value));
+                                    //include in the list for use with finding a toon's collected items
+                                    // the key is "collectionID-itemID"
+                                    item.ToList().ForEach(x => lookupItems.Add(node.id + "-" + x.Key, x.Value));
+                                }
+                                catch { } // this has crashed when census was flakey, just survive it - should have already popped an error up
                             }
                         }
                     }
@@ -1559,7 +1563,7 @@ namespace Eq2Collections
                 string Rver = $"{remoteVersion.Major}.{remoteVersion.Minor}.{remoteVersion.Build}";
                 if (remoteVersion > localVersion)
                 {
-                    string msg = $"Version {Rver} is available. Update and restart?\n\n(You are running version {Lver})";
+                    string msg = $"Version {Rver} is available. Update?\n\n(You are running version {Lver})";
                     if(FlexibleMessageBox.Show(this, msg, 
                         "Update Available", 
                         MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
