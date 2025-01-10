@@ -61,6 +61,7 @@
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.RewardItem = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.panel3 = new System.Windows.Forms.Panel();
+            this.checkBoxGameIcons = new System.Windows.Forms.CheckBox();
             this.label4 = new System.Windows.Forms.Label();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
@@ -69,7 +70,7 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.whatsMissingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.checkBoxGameIcons = new System.Windows.Forms.CheckBox();
+            this.checkBoxUnpublished = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -85,6 +86,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.checkBoxUnpublished);
             this.panel1.Controls.Add(this.buttonRebuild);
             this.panel1.Controls.Add(this.label1);
             this.panel1.Controls.Add(this.label3);
@@ -398,6 +400,19 @@
             this.panel3.Size = new System.Drawing.Size(563, 28);
             this.panel3.TabIndex = 3;
             // 
+            // checkBoxGameIcons
+            // 
+            this.checkBoxGameIcons.AutoSize = true;
+            this.checkBoxGameIcons.Location = new System.Drawing.Point(321, 5);
+            this.checkBoxGameIcons.Name = "checkBoxGameIcons";
+            this.checkBoxGameIcons.Size = new System.Drawing.Size(102, 17);
+            this.checkBoxGameIcons.TabIndex = 3;
+            this.checkBoxGameIcons.Text = "Use game icons";
+            this.toolTip1.SetToolTip(this.checkBoxGameIcons, "Check to browse to the game folder\r\nand use the game icons instead of census icon" +
+        "s");
+            this.checkBoxGameIcons.UseVisualStyleBackColor = true;
+            this.checkBoxGameIcons.CheckedChanged += new System.EventHandler(this.checkBoxGameIcons_CheckedChanged);
+            // 
             // label4
             // 
             this.label4.AutoSize = true;
@@ -460,18 +475,16 @@
             this.whatsMissingToolStripMenuItem.Text = "What\'s Missing...";
             this.whatsMissingToolStripMenuItem.Click += new System.EventHandler(this.whatsMissingToolStripMenuItem_Click);
             // 
-            // checkBoxGameIcons
+            // checkBoxUnpublished
             // 
-            this.checkBoxGameIcons.AutoSize = true;
-            this.checkBoxGameIcons.Location = new System.Drawing.Point(321, 5);
-            this.checkBoxGameIcons.Name = "checkBoxGameIcons";
-            this.checkBoxGameIcons.Size = new System.Drawing.Size(102, 17);
-            this.checkBoxGameIcons.TabIndex = 3;
-            this.checkBoxGameIcons.Text = "Use game icons";
-            this.toolTip1.SetToolTip(this.checkBoxGameIcons, "Check to browse to the game folder\r\nand use the game icons instead of census icon" +
-        "s");
-            this.checkBoxGameIcons.UseVisualStyleBackColor = true;
-            this.checkBoxGameIcons.CheckedChanged += new System.EventHandler(this.checkBoxGameIcons_CheckedChanged);
+            this.checkBoxUnpublished.AutoSize = true;
+            this.checkBoxUnpublished.Location = new System.Drawing.Point(367, 34);
+            this.checkBoxUnpublished.Name = "checkBoxUnpublished";
+            this.checkBoxUnpublished.Size = new System.Drawing.Size(123, 17);
+            this.checkBoxUnpublished.TabIndex = 11;
+            this.checkBoxUnpublished.Text = "Include Unpublished";
+            this.toolTip1.SetToolTip(this.checkBoxUnpublished, "Generate \'Unpublished\' categories.\r\nIs slower due to increased Census queries.");
+            this.checkBoxUnpublished.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -553,6 +566,7 @@
         private System.Windows.Forms.ToolStripMenuItem projectWebsiteToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.CheckBox checkBoxGameIcons;
+        private System.Windows.Forms.CheckBox checkBoxUnpublished;
     }
 }
 

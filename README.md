@@ -6,12 +6,29 @@ it creates a parent / child relationship between the collections.
 The utility is entirely dependent upon the EQII census. When the census is having problems, 
 the utility will have problems.
 
+The census has stopped returning icon images. The utility can instead use the game icons by checking the `[]Use game icons` checkbox and browsing to the game folder.
+
 The utility can query the census for the items actually collected by a character in the game 
 and flag them in the hierarchy. The result is something like the "Main screen" screenshot shown. 
-(The green monster icons are placeholders for icon's that are not available in the census.)
 
 ![Startup](Screenshots/Fabled-Kael-Drakkel-2.png)
 
+## Missing Census Collections
+Daybreak typically does not publish collections to the census for "a while" after a new expansion pack is released. But the collectables themselves do show up in a a query for what an individual character has collected. By checking the `[] Include Unpublished` checkbox, those items will be placed in an "Unpublished (level)" collection, where 'level' is the level of the collected items.
+
+Since an unpublished collection itself is not in the census, the utility does not have the collection name, level, item list, or rewards.
+
+Since the utility does not have the collection rewards, any parent/child relationships cannot be resolved.
+
+Since the utility does not have the collection's list of items, it only knows about items that a character has actually collected. If only one character's collections are retrieved from the census, this results in the utility marking all of the `Unpublished` collections as complete. To try to fill out missing items, multiple characters' collections can be retrieved.
+
+ Since the collection definition is missing, the utility must fetch each character's item's details from the census to get the item name, icon, and level (which is used to set the parent `Unpublished (level)`). This takes some time.
+
+None of the unpublished data is saved between runs of the utility. (In the past, Daybreak eventually pushes the new collections to the census and the utility will pick that up.)
+
+An example of an `[] Include Unpublished` for a single character `[Get]` (i.e. all collections are complete because we only know about items that one character owns) is shown below.
+
+![Unpublished](Screenshots/unpublished.png)
 ## The Tree Pane
 Top level nodes in the tree are collection categories grouped by level. 
 Under those are the names of the collections in that category. 
@@ -67,9 +84,8 @@ For instance, the tool will not find "moth" but it will find "plain black moth".
 
 
 # Changes
-__Version 1.3.2__: 
-* Daybreak is disinclined to acquiesce to our request to fix census images. This version adds the option to get the collection item icons from the game files. (This is faster and finds more of the icons than were ever in the census anyway.) Check the []*Use game icons* checkbox and browse to your *Everquest II* folder.
-* Added *Hide No Trade* filter to the want list.
+__Version 1.4.0__: 
+* Added `[] Include Unpublished` option.
 
 
 # Installation

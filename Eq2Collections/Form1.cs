@@ -123,6 +123,7 @@ namespace Eq2Collections
                 textBoxChar.Text = Properties.Settings.Default.Player;
             checkBoxShowIcons.Checked = Properties.Settings.Default.ShowIcons;
             checkBoxLevelSort.Checked = Properties.Settings.Default.SortByLevel;
+            checkBoxUnpublished.Checked = Settings.Default.IncludeUnpublished;
 
             if (!string.IsNullOrEmpty(Settings.Default.GameFolder))
             {
@@ -155,6 +156,7 @@ namespace Eq2Collections
 
         private async void Form1_Shown(object sender, EventArgs e)
         {
+            UseWaitCursor = true;
             await GetWorlds();
             if (worldList != null)
             {
@@ -197,21 +199,24 @@ namespace Eq2Collections
             listView1.Groups.Add(new ListViewGroup("Selected Reward", HorizontalAlignment.Left));
             listView1.ShowGroups = true;
 
+            UseWaitCursor = false;
+
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (WindowState != FormWindowState.Minimized)
             {
-                Properties.Settings.Default.WindowLocation = this.Location;
-                Properties.Settings.Default.WindowSize = this.Size;
-                Properties.Settings.Default.SplitterLocation = splitContainer1.SplitterDistance;
+                Settings.Default.WindowLocation = this.Location;
+                Settings.Default.WindowSize = this.Size;
+                Settings.Default.SplitterLocation = splitContainer1.SplitterDistance;
             }
-            Properties.Settings.Default.World = comboBoxWorlds.Text;
-            Properties.Settings.Default.Player = textBoxChar.Text;
-            Properties.Settings.Default.ShowIcons = checkBoxShowIcons.Checked;
-            Properties.Settings.Default.SortByLevel = checkBoxLevelSort.Checked;
-            Properties.Settings.Default.Save();
+            Settings.Default.World = comboBoxWorlds.Text;
+            Settings.Default.Player = textBoxChar.Text;
+            Settings.Default.ShowIcons = checkBoxShowIcons.Checked;
+            Settings.Default.SortByLevel = checkBoxLevelSort.Checked;
+            Settings.Default.IncludeUnpublished = checkBoxUnpublished.Checked;
+            Settings.Default.Save();
         }
 
         #region HTTP
@@ -261,7 +266,6 @@ namespace Eq2Collections
             try
             {
                 var requestUri = baseUrl + @"xml/get/eq2/collection/?c:show=category,level&c:limit=3000";
-                //UseWaitCursor = true;
                 var response = await client.GetAsync(requestUri);
                 if (response.IsSuccessStatusCode)
                 {
@@ -275,7 +279,6 @@ namespace Eq2Collections
                 {
                     FlexibleMessageBox.Show(this,"GetCategories Response: " + response.ReasonPhrase, "Error");
                 }
-                //UseWaitCursor = false;
             }
             catch(Exception gcx)
             {
@@ -294,7 +297,6 @@ namespace Eq2Collections
                 try
                 {
                     var requestUri = string.Format(@"{0}xml/get/eq2/character/?locationdata.world={1}&c:show=id&name.first={2}", baseUrl, world, toon);
-                    UseWaitCursor = true;
                     var response = await client.GetAsync(requestUri/*, ct*/);
                     if (response.IsSuccessStatusCode)
                     {
@@ -315,7 +317,6 @@ namespace Eq2Collections
                 {
                     FlexibleMessageBox.Show(this,"Char id exception: " + cidx.Message, "Error");
                 }
-                UseWaitCursor = false;
             }
             return id;
         }
@@ -329,7 +330,6 @@ namespace Eq2Collections
                 try
                 {
                     var requestUri = string.Format(@"{0}xml/get/eq2/item/?c:show=id&c:limit=10&displayname_lower={1}", baseUrl, item);
-                    //UseWaitCursor = true;
                     var response = await client.GetAsync(requestUri);
                     if (response.IsSuccessStatusCode)
                     {
@@ -350,7 +350,6 @@ namespace Eq2Collections
                     {
                         FlexibleMessageBox.Show(this,"GetItemId Response: " + response.ReasonPhrase, "Error");
                     }
-                    //UseWaitCursor = false;
                 }
                 catch(Exception gidx)
                 {
@@ -404,7 +403,6 @@ namespace Eq2Collections
                 try
                 {
                     var requestUri = string.Format(@"{0}xml/get/eq2/item/?id={1}", baseUrl, id);
-                    //UseWaitCursor = true;
                     var response = await client.GetAsync(requestUri);
                     if (response.IsSuccessStatusCode)
                     {
@@ -421,7 +419,6 @@ namespace Eq2Collections
                     {
                         FlexibleMessageBox.Show(this,"GetItemDetails<ItemDetail> Response: " + response.ReasonPhrase, "Error");
                     }
-                    //UseWaitCursor = false;
                 }
                 catch (Exception gidx)
                 {
@@ -547,7 +544,7 @@ namespace Eq2Collections
                 if (ct.IsCancellationRequested)
                     break;
             }
-            if (col.rewardList.reward.itemList != null
+            if (col.rewardList != null && col.rewardList.reward.itemList != null
                 && !ct.IsCancellationRequested)
             {
                 foreach (Item item in col.rewardList.reward.itemList.item)
@@ -586,7 +583,7 @@ namespace Eq2Collections
                     }
                 }
             }
-            if(col.rewardList.reward.selectedItemList != null
+            if(col.rewardList != null && col.rewardList.reward.selectedItemList != null
                 && !ct.IsCancellationRequested)
             {
                 foreach (Item item in col.rewardList.reward.selectedItemList.selectedItem)
@@ -659,7 +656,6 @@ namespace Eq2Collections
 
         private async void GetGameCollections()
         {
-            UseWaitCursor = true;
             FormWait formWait = new FormWait("Collection census query running");
             if(needHeirarchy)
                 formWait.Show(this);
@@ -671,10 +667,9 @@ namespace Eq2Collections
                 lookupItems = new Dictionary<string, Reference>();
                 categories = new Dictionary<string, List<Collection>>();
                 await GetCategories();
-                if(catCollectionList == null)
+                if (catCollectionList == null)
                 {
-                    FlexibleMessageBox.Show(this,"Could not fetch collection categories.\nPress [Rebuild] to try again.", "Error");
-                    UseWaitCursor = false;
+                    FlexibleMessageBox.Show(this, "Could not fetch collection categories.\nPress [Rebuild] to try again.", "Error");
                     return;
                 }
                 catMap = catCollectionList.collection.ToDictionary(node => node.id);
@@ -705,9 +700,10 @@ namespace Eq2Collections
                 {
                     await GetCollection(c);
 
-                    //Visions of Vetrovia removed the reward items from the census.
+                    //Visions of Vetrovia originally removed the reward items from the census.
                     //But parents' item names are the names of the child collections.
                     //So try to add collectable rewards just by matching the names
+                    //(missing rewards was eventually corrected)
                     if (c.category.Equals("Visions of Vetrovia"))
                     {
                         foreach (Collection node in collectionList.collection)
@@ -903,7 +899,6 @@ namespace Eq2Collections
             buttonRebuild.Enabled = true;
 
             formWait.Close();
-            UseWaitCursor = false;
         }
 
         #endregion HTTP
@@ -934,32 +929,90 @@ namespace Eq2Collections
 
             if (!string.IsNullOrEmpty(id))
             {
-                var requestUri = string.Format(@"{0}xml/get/eq2/character_misc?id={1}&c:show=collection_list", baseUrl, id);
-                var response = await client.GetAsync(requestUri);
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    using (var stream = await response.Content.ReadAsStreamAsync())
+                    var requestUri = string.Format(@"{0}xml/get/eq2/character_misc?id={1}&c:show=collection_list", baseUrl, id);
+                    var response = await client.GetAsync(requestUri);
+                    if (response.IsSuccessStatusCode)
                     {
-                        var serializer = new XmlSerializer(typeof(CharacterMiscList));
-                        charMiscList = (CharacterMiscList)serializer.Deserialize(stream);
+                        using (var stream = await response.Content.ReadAsStreamAsync())
+                        {
+                            var serializer = new XmlSerializer(typeof(CharacterMiscList));
+                            charMiscList = (CharacterMiscList)serializer.Deserialize(stream);
+                        }
+                    }
+                    else
+                    {
+                        FlexibleMessageBox.Show(this, "GetChar Response: " + response.ReasonPhrase, "Error");
                     }
                 }
-                else
+                catch (Exception cex)
                 {
-                    FlexibleMessageBox.Show(this,"GetChar Response: " + response.ReasonPhrase, "Error");
+                    FlexibleMessageBox.Show(this, "GetChar census exception: " + cex.Message, "Error");
+                    return;
                 }
 
                 if (categories.Count > 0)
                 {
                     toolStripStatusLabelItemCount.Visible = true;
                     toonColCount = 0;
+                    bool hasUnpublished = false;
+                    toolStripProgressBar1.Maximum = charMiscList.characterMisc.charMiscColList.charMiscCollection.Count;
+                    toolStripProgressBar1.Value = 0;
+
 
                     //for each collection the toon has
                     foreach (CharMiscCollection col in charMiscList.characterMisc.charMiscColList.charMiscCollection)
                     {
                         //use the id to find that collection's name in the game collections
                         CatCollection catcol;
-                        if (catMap.TryGetValue(col.crc, out catcol))
+                        if (!catMap.TryGetValue(col.crc, out catcol))
+                        {
+                            // it's an unpublished collection
+                            if (!categories.ContainsKey(col.crc) && checkBoxUnpublished.Checked)
+                            {
+                                // we will invent a collection for it
+                                hasUnpublished = true;
+                                Debug.WriteLine($"char has item in unpublished collection id {col.crc}");
+                                List<Collection> unpubs = new List<Collection>();
+                                Collection unpub = new Collection();
+                                unpub.id = col.crc;
+                                unpub.rewardList = null;
+                                unpub.referenceList = new ReferenceList();
+                                unpub.referenceList.reference = new List<Reference>();
+                                foreach (CharMiscItem item in col.charMiscItemList.charMiscItem)
+                                {
+                                    Reference refr = new Reference { id = item.crc, have = true };
+                                    toonColCount++;
+                                    // we need item detail to get the icon id and level for the collection
+                                    ItemDetail detail = await GetItemDetails(item.crc);
+                                    if (detail != null)
+                                    {
+                                        //Debug.WriteLine($"char has item {detail.displayname} ({item.crc}) which has no known category");
+                                        unpub.level = detail.level;
+                                        refr.itemDetail = detail;
+                                        refr.collectionId = col.crc;
+                                        refr.icon = detail.iconid;
+                                        refr.name = detail.displayname;
+                                        unpub.referenceList.reference.Add(refr);
+                                        lookupItems.Add($"{col.crc}-{item.crc}", refr);
+                                    }
+                                }
+                                unpub.category = $"Unpublished ({unpub.level,3})";
+                                unpub.name = $"Unpublished {unpub.id}";
+                                unpubs.Add(unpub);
+                                List<Collection> already;
+                                if(categories.TryGetValue(unpub.category, out already))
+                                    already.Add(unpub);
+                                else
+                                    categories.Add(unpub.category, unpubs);
+
+                                catcol = new CatCollection { category = "Unpublished", id = col.crc, level = unpub.level };
+                                catCollectionList.collection.Add(catcol);
+                                catMap = catCollectionList.collection.ToDictionary(node => node.id);
+                            }
+                        }
+                        else
                         {
                             //use the category name to find the collection item list
                             List<Collection> collist;
@@ -971,32 +1024,67 @@ namespace Eq2Collections
                                     //find that item in the game list
                                     //RecurseFindChildItem(item.crc, collist);
                                     Reference refr;
-                                    if(lookupItems.TryGetValue(col.crc + "-" + item.crc, out refr))
+                                    if (lookupItems.TryGetValue(col.crc + "-" + item.crc, out refr))
                                     {
                                         refr.have = true;
                                         toonColCount++;
                                     }
                                     else
                                     {
-                                        FlexibleMessageBox.Show(this,"Character has an item id " 
-                                            + item.crc 
-                                            + "\nin a collection with id "
-                                            + col.crc
-                                            + "\nthat is not in the dictionary", "Error");
+                                        // new item in an unpublished category
+                                        // find the particular collection
+                                        Collection exists = collist.FirstOrDefault(c => c.id == col.crc);
+                                        // only way to get the iconid is to get all item details
+                                        ItemDetail detail = await GetItemDetails(item.crc);
+                                        if (detail != null)
+                                        {
+                                            hasUnpublished = true;  //redraw the tree
+                                            //Debug.WriteLine($"char has item {detail.displayname} ({item.crc}) which was not found in the category");
+                                            refr = new Reference { id = item.crc, icon = detail.iconid, name = detail.displayname };
+                                            refr.itemDetail = detail;
+                                            refr.collectionId = col.crc;
+                                            refr.have = true;
+                                            toonColCount++;
+                                            lookupItems.Add($"{col.crc}-{item.crc}", refr);
+                                            if (exists != null)
+                                                exists.referenceList.reference.Add(refr);
+                                        }
+                                        else
+                                        {
+                                            FlexibleMessageBox.Show(this, "Character has an item id "
+                                                + item.crc
+                                                + "\nin a collection with id "
+                                                + col.crc
+                                                + "\nwhose GetItemDetails failed", "Error");
+                                        }
                                     }
                                 }
                             }
                         }
+                        toolStripProgressBar1.Value++;
+                    }
+
+                    if(hasUnpublished)
+                    {
+                        //remove duplicate category names
+                        consolodatedCats = (
+                                from o in catCollectionList.collection
+                                orderby o.ToString()
+                                group o by o.ToString() into g
+                                select g.First()
+                                ).ToList();
+                        if (checkBoxLevelSort.Checked)
+                            sortedCats = new SortedList<string, List<Collection>>(categories, new CategoryLevelComparer());
+                        else
+                            sortedCats = new SortedList<string, List<Collection>>(categories); //alpha sort
+
+                        DrawTree();
+                        UpdateStatusStrip();
                     }
 
                     //update the view
                     UpdateTreeChecks();
-
-                    toolStripStatusLabelItemCount.Text = "Collected "
-                        + toonColCount.ToString()
-                        + " of "
-                        + lookupItems.Count.ToString()
-                        + " items";
+                    UpdateStatusStrip();
                     checkBoxHide.Enabled = true;
                 }
             }
@@ -1005,8 +1093,16 @@ namespace Eq2Collections
                 FlexibleMessageBox.Show(this,"No such character found.\nCheck spelling and World", "Error");
             }
             UseWaitCursor = false;
+        }
 
-            Cursor.Current = Cursors.Default;
+        private void UpdateStatusStrip()
+        {
+            toolStripStatusLabelItemCount.Text = "Collected "
+                + toonColCount.ToString()
+                + " of "
+                + lookupItems.Count.ToString()
+                + " items";
+            toolStripStatusLabelColCount.Text = categories.Count.ToString() + " Categories";
         }
 
         private async void treeView_AfterSelect(object sender, TreeViewEventArgs e)
@@ -1088,7 +1184,7 @@ namespace Eq2Collections
                                 listView1.Items.Add(item);
 
                             }
-                            if (col.rewardList.reward.itemList != null
+                            if (col.rewardList != null && col.rewardList.reward.itemList != null
                                 && !cts.IsCancellationRequested)
                             {
                                 bool have = col.HaveAllItems();
@@ -1131,7 +1227,7 @@ namespace Eq2Collections
                                     }
                                 }
                             }
-                            if(col.rewardList.reward.selectedItemList != null
+                            if(col.rewardList != null && col.rewardList.reward.selectedItemList != null
                                 && !cts.IsCancellationRequested)
                             {
                                 foreach (Item item in col.rewardList.reward.selectedItemList.selectedItem)
@@ -1195,7 +1291,6 @@ namespace Eq2Collections
                     enableList = false;
                 }
                 UseWaitCursor = false;
-                Cursor.Current = Cursors.Default;
 
                 // *** When the process is complete, signal that another process can proceed.
                 if (cts == newCTS)
@@ -1229,8 +1324,10 @@ namespace Eq2Collections
 
         private void checkBoxLevelSort_CheckedChanged(object sender, EventArgs e)
         {
+            UseWaitCursor = true;
             GetGameCollections();
             UpdateTreeChecks();
+            UseWaitCursor = false;
         }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1525,6 +1622,7 @@ namespace Eq2Collections
 
         private void buttonRebuild_Click(object sender, EventArgs e)
         {
+            UseWaitCursor = true;
             needHeirarchy = true;
             catMap = null;
             treeView1.Nodes.Clear();
@@ -1537,6 +1635,7 @@ namespace Eq2Collections
             toolStripStatusLabelItemCount.Visible = false;
 
             GetGameCollections();
+            UseWaitCursor = false;
         }
 
         private void projectWebsiteToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1987,7 +2086,7 @@ namespace Eq2Collections
                     }
                     listView1.Refresh();
                 }
-                if (col.rewardList.reward.itemList != null)
+                if (col.rewardList != null && col.rewardList.reward.itemList != null)
                 {
                     // *** If a process is already underway, cancel it.
                     if (cts != null)

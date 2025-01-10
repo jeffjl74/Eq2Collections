@@ -14,7 +14,6 @@ namespace Eq2Collections
             this.labelVersion.Text = String.Format("Version {0}", AssemblyVersion);
             this.labelCopyright.Text = AssemblyCopyright;
             this.labelCompanyName.Text = AssemblyCompany;
-            //this.textBoxDescription.Text = AssemblyDescription;
             this.textBoxDescription.Text = "Pulls collection data from the EQII census and constructs a hiearchy. "
                 + "Pulls a character's collected items and checks the boxes in the hiearchy. "
                 + Environment.NewLine + Environment.NewLine
@@ -31,9 +30,6 @@ namespace Eq2Collections
                 + "For example, the two 'Relics of the Ethernauts' collections under 'Shadow Odyssey ( 85)', "
                 + "one of which is populated with items that don't seem to exist. "
                 + Environment.NewLine + Environment.NewLine
-                + "As of this writing, VoV census data does not contain reward data. "
-                + "Therefore, for the Visions of Vetrovia category, "
-                + "the tool builds its own parent / child relationships based on item names. "
                 ;
         }
 

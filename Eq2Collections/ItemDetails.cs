@@ -26,6 +26,8 @@ namespace Eq2Collections
         public string displayname { get; set; }
         [XmlAttribute("iconid")]
         public string iconid { get; set; }
+        [XmlAttribute("itemlevel")]
+        public string level;
         [XmlElement("flags")]
         public Flags flags;
     }
