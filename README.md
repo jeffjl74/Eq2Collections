@@ -14,7 +14,7 @@ and flag them in the hierarchy. The result is something like the "Main screen" s
 ![Startup](Screenshots/Fabled-Kael-Drakkel-2.png)
 
 ## Missing Census Collections
-Daybreak typically does not publish collections to the census for "a while" after a new expansion pack is released. But the collectables themselves do show up in a a query for what an individual character has collected. By checking the `[] Include Unpublished` checkbox, those items will be placed in an "Unpublished (level)" collection, where 'level' is the level of the collected items.
+Daybreak typically does not publish collections to the census for "a while" (typically months) after a new expansion pack is released. But the collectables themselves do show up in a a query for what an individual character has collected. By checking the `[] Include Unpublished` checkbox, those items will be placed in an "Unpublished (level)" collection, where 'level' is the level of the collected items.
 
 Since an unpublished collection itself is not in the census, the utility does not have the collection name, level, item list, or rewards.
 
